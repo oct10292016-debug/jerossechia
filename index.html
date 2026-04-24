@@ -166,7 +166,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
 .prod-stat-name{color:var(--mt-text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prod-stat-qty{color:var(--mt-accent);font-weight:600;text-align:center}
 .prod-stat-rev{color:var(--mt-blue);font-weight:500;text-align:right;font-size:12px}
-.scan-fab{position:fixed;bottom:calc(80px + var(--safe-bottom));right:16px;width:52px;height:52px;background:#5E7EA0;color:#fff;border:none;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:50;display:flex;align-items:center;justify-content:center}
+.scan-fab{position:fixed;bottom:calc(175px + var(--safe-bottom));right:16px;width:52px;height:52px;background:#5E7EA0;color:#fff;border:none;border-radius:50%;font-size:22px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:50;display:flex;align-items:center;justify-content:center}
 .scan-fab:active{opacity:0.85;transform:scale(0.95)}
 .scan-modal-backdrop{display:none;position:fixed;inset:0;background:rgba(44,36,32,0.55);z-index:100;align-items:flex-end}
 .scan-modal-backdrop.open{display:flex}
@@ -228,12 +228,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
     <div class="header-row">
       <span class="app-title">婕樂纖</span>
       <select class="level-select" id="myLevel" onchange="renderGrid()">
-        <option value="皇家輔導">皇家輔導</option>
+        <option value="皇家輔導" selected>皇家輔導</option>
         <option value="一級輔導">一級輔導</option>
         <option value="二級輔導">二級輔導</option>
         <option value="三級輔導">三級輔導</option>
         <option value="三級零售">三級零售</option>
-        <option value="實習" selected>實習</option>
+        <option value="實習">實習</option>
       </select>
       <select class="sell-type-select" id="sellType" onchange="renderGrid()">
         <option value="r0">售：零售價</option>

@@ -189,6 +189,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
 .manual-item-right{font-weight:500}
 .manual-del{background:none;border:none;cursor:pointer;color:var(--mt-hint);font-size:12px;padding:2px 6px;border-radius:6px}
 .manual-del:active{color:var(--mt-red)}
+.stock-wrap{background:var(--mt-card);border:0.5px solid var(--mt-border);border-radius:14px;padding:14px;margin-bottom:16px}
+.stock-title{font-size:11px;color:var(--mt-muted);letter-spacing:0.3px;text-transform:uppercase;margin-bottom:10px}
+.stock-input-row{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.stock-input{padding:8px 10px;border:0.5px solid var(--mt-border);border-radius:10px;background:var(--mt-surface);color:var(--mt-text);font-size:13px;outline:none;width:100%}
+.stock-input::placeholder{color:var(--mt-hint)}
+.stock-add-btn{padding:8px 14px;background:var(--mt-accent);color:#FAF6F1;border:none;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+.stock-add-btn:active{opacity:0.85}
+.stock-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.stock-sum-item{background:var(--mt-surface);border-radius:10px;padding:10px;text-align:center}
+.stock-sum-label{font-size:10px;color:var(--mt-muted);margin-bottom:4px;letter-spacing:0.3px}
+.stock-sum-val{font-size:15px;font-weight:600}
+.stock-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.stock-item{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--mt-surface);border-radius:8px;font-size:12px}
+.stock-item-left{color:var(--mt-muted)}
+.stock-item-right{font-weight:500;color:var(--mt-red)}
+.stock-del{background:none;border:none;cursor:pointer;color:var(--mt-hint);font-size:12px;padding:2px 6px;border-radius:6px}
 .stats-tab-bar{display:flex;gap:2px;background:var(--mt-surface);border-radius:12px;padding:3px;margin-bottom:14px}
 .stats-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;color:var(--mt-muted);border:none;background:none;border-radius:9px;cursor:pointer}
 .stats-tab.active{background:var(--mt-card);color:var(--mt-text);border:0.5px solid var(--mt-border)}
@@ -354,6 +370,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
       <div class="stat-card"><div class="stat-card-label">總營收</div><div class="stat-card-val c-blue" id="sRev">NT$0</div><div class="stat-card-sub">銷售金額</div></div>
       <div class="stat-card"><div class="stat-card-label">總利潤</div><div class="stat-card-val" id="sProfit">NT$0</div><div class="stat-card-sub">淨利潤</div></div>
       <div class="stat-card"><div class="stat-card-label">平均利潤率</div><div class="stat-card-val" id="sMargin">—</div><div class="stat-card-sub">加權平均</div></div>
+    </div>
+    <div class="divider"></div>
+    <div class="stock-wrap">
+      <div class="stock-title">進貨成本記錄</div>
+      <div class="stock-input-row">
+        <input class="stock-input" id="stockDate" type="date">
+        <input class="stock-input" id="stockAmount" type="number" placeholder="進貨金額" inputmode="numeric">
+        <button class="stock-add-btn" onclick="addStock()">新增</button>
+      </div>
+      <div class="stock-summary">
+        <div class="stock-sum-item">
+          <div class="stock-sum-label">總進貨</div>
+          <div class="stock-sum-val c-red" id="stockTotal">NT$0</div>
+        </div>
+        <div class="stock-sum-item">
+          <div class="stock-sum-label">已售成本</div>
+          <div class="stock-sum-val c-muted" id="stockSold">NT$0</div>
+        </div>
+        <div class="stock-sum-item">
+          <div class="stock-sum-label">庫存成本</div>
+          <div class="stock-sum-val c-blue" id="stockRemain">NT$0</div>
+        </div>
+      </div>
+      <div class="stock-list" id="stockList"></div>
     </div>
     <div class="divider"></div>
     <div class="manual-wrap">
@@ -576,7 +616,7 @@ function switchToProduct(s){
 
 function openEventModal(id){
   editingEventId=id;
-  const ev=id!=null?events.find(e=>e.id===id):null;
+  const ev=id!=null?events.find(e=>String(e.id)===String(id)):null;
   document.getElementById('eventModalTitle').textContent=ev?'編輯活動組合':'新增活動組合';
   document.getElementById('eventName').value=ev?ev.name:'';
   document.getElementById('eventPrice').value=ev?ev.price:'';
@@ -635,7 +675,7 @@ function saveEventBundle(){
   });
   if(!items.length){alert('請至少選擇一個商品');return;}
   if(editingEventId!=null){
-    const idx=events.findIndex(e=>e.id===editingEventId);
+    const idx=events.findIndex(e=>String(e.id)===String(editingEventId));
     if(idx>=0)events[idx]={...events[idx],name,price,items};
   } else {
     events.push({id:Date.now(),name,price,items});
@@ -647,15 +687,15 @@ function saveEventBundle(){
 
 function deleteEvent(id){
   if(!confirm('確定刪除此活動組合？'))return;
-  events=events.filter(e=>e.id!==id);
+  events=events.filter(e=>String(e.id)!==String(id));
   saveEvents();
   renderEventList();
 }
 
 function addEventToCart(id){
-  const ev=events.find(e=>e.id===id);
+  const ev=events.find(e=>String(e.id)===String(id));
   if(!ev)return;
-  const key='活動_'+id;
+  const key='活動_'+String(ev.id)+'::'+ev.name+'::'+parseFloat(ev.price);
   cart[key]=(cart[key]||0)+1;
   renderEventList();
   renderCartPreview();
@@ -663,8 +703,10 @@ function addEventToCart(id){
 }
 
 function removeEventFromCart(id){
-  const key='活動_'+id;
-  if(cart[key]>0){cart[key]--;if(cart[key]===0)delete cart[key];}
+  // 找到對應的 key（格式 活動_id::name::price）
+  const prefix='活動_'+String(id)+'::';
+  const key=Object.keys(cart).find(k=>k.startsWith(prefix));
+  if(key&&cart[key]>0){cart[key]--;if(cart[key]===0)delete cart[key];}
   renderEventList();
   renderCartPreview();
   updateSummary();
@@ -676,21 +718,22 @@ function renderEventList(){
   if(!events.length){list.innerHTML='<div class="event-empty">尚無活動組合<br>點上方「新增」建立</div>';return;}
   const lv=getLevel();
   list.innerHTML=events.map(ev=>{
-    const key='活動_'+ev.id;
-    const qty=cart[key]||0;
+    const prefix='活動_'+String(ev.id)+'::';
+    const evKey=Object.keys(cart).find(k=>k.startsWith(prefix))||('活動_'+String(ev.id)+'::'+ev.name+'::'+parseFloat(ev.price));
+    const qty=cart[evKey]||0;
     const cost=ev.items.reduce((s,i)=>{if(i.gift)return s;const p=ALL.find(x=>x.name===i.name);return s+(p?p.costs[lv]||0:0)*i.qty;},0);
     const itemStr=ev.items.map(i=>(i.gift?'🎁 ':'')+i.name+(i.qty>1?' ×'+i.qty:'')).join('、');
     return`<div class="event-card${qty>0?' has-qty':''}">
       <div class="event-card-name">${ev.name}${qty>0?` <span style="color:var(--mt-accent);font-size:13px">× ${qty}</span>`:''}</div>
       <div class="event-card-items">${itemStr}</div>
-      <div class="event-card-price">NT$${Math.round(ev.price).toLocaleString()}</div>
-      <div class="event-card-cost">進貨成本 NT$${Math.round(cost).toLocaleString()}　利潤 NT$${Math.round(ev.price-cost).toLocaleString()}</div>
+      <div class="event-card-price">NT$${Math.round(parseFloat(ev.price)).toLocaleString()}</div>
+      <div class="event-card-cost">進貨成本 NT$${Math.round(cost).toLocaleString()}　利潤 NT$${Math.round(parseFloat(ev.price)-cost).toLocaleString()}</div>
       <div class="event-card-actions">
-        <button class="event-qty-btn" onclick="removeEventFromCart(${ev.id})">－</button>
+        <button class="event-qty-btn" onclick="removeEventFromCart('${ev.id}')">－</button>
         <span class="event-qty">${qty}</span>
-        <button class="event-qty-btn" onclick="addEventToCart(${ev.id})">＋</button>
-        <button class="event-edit-btn" onclick="openEventModal(${ev.id})">編輯</button>
-        <button class="event-del-btn" onclick="deleteEvent(${ev.id})">刪除</button>
+        <button class="event-qty-btn" onclick="addEventToCart('${ev.id}')">＋</button>
+        <button class="event-edit-btn" onclick="openEventModal('${ev.id}')">編輯</button>
+        <button class="event-del-btn" onclick="deleteEvent('${ev.id}')">刪除</button>
       </div>
     </div>`;
   }).join('');
@@ -769,6 +812,8 @@ function clearCart(){
   document.getElementById('orderNote').value='';
   renderGrid();
   renderCartPreview();
+  updateSummary();
+  if(curTab==='event')renderEventList();
 }
 
 function renderCartPreview(){
@@ -780,7 +825,7 @@ function renderCartPreview(){
     const isGiftKey=key.startsWith('贈品_');
     const isBizKey=key.startsWith('創業_');
     const isEvKey=key.startsWith('活動_');
-    const label=isEvKey?'[活動] '+(events.find(e=>e.id===parseInt(key.slice(3)))||{name:key}).name:(isGiftKey?'[贈品] '+key.slice(3):(isBizKey?'[創業] '+key.slice(3):key));
+    const label=isEvKey?(()=>{const parts=key.split('::');const eid=parts[0].slice(3);const ev=events.find(e=>String(e.id)===eid);return '[活動] '+(ev?ev.name:(parts[1]||'活動組合'));})():((isGiftKey?'[贈品] '+key.slice(3):(isBizKey?'[創業] '+key.slice(3):key));
     const safeKey=key.replace(/'/g,"\\'");
     return`<div class="cart-row">
       <span class="cart-row-name">${label}</span>
@@ -802,42 +847,13 @@ function updateSummary(){
     const isBizKey=key.startsWith('創業_');
     const isEventKey=key.startsWith('活動_');
     if(isEventKey){
-      const eid=parseInt(key.slice(3));
-      const ev=events.find(e=>e.id===eid);if(!ev)return;
-      const ecost=ev.items.reduce((s,i)=>{if(i.gift)return s;const p=ALL.find(x=>x.name===i.name);return s+(p?p.costs[lv]||0:0)*i.qty;},0);
-      tR+=ev.price*qty;tP+=(ev.price-ecost)*qty;return;
-    }
-    const name=isGiftKey?key.slice(3):(isBizKey?key.slice(3):key);
-    const p=ALL.find(x=>x.name===name);if(!p)return;
-    const cost=isGiftKey||isBizKey?0:(p.costs[lv]||0);
-    const sp=isGiftKey?0:(isBizKey?(p.fixed||p.retail[0]||0):getSellPrice(p,pt));
-    tR+=sp*qty;tP+=(sp-cost)*qty;
-  });
-  const avg=tR>0?tP/tR*100:null;
-  document.getElementById('sumRev').textContent=fmt(tR);
-  const pe=document.getElementById('sumProfit');
-  pe.textContent=fmt(tP);pe.className='sum-val '+(tP>=0?'c-green':'c-red');
-  const me=document.getElementById('sumMargin');
-  me.textContent=avg!==null?avg.toFixed(1)+'%':'—';
-  me.className='sum-val '+(avg===null?'c-muted':avg>=0?'c-green':'c-red');
-}
-
-function saveOrder(){
-  const items=Object.entries(cart).filter(([,q])=>q>0);
-  if(!items.length){alert('請先選擇商品');return;}
-  const lv=getLevel(),pt=getSellType();
-  const note=document.getElementById('orderNote').value.trim();
-  let tR=0,tP=0;
-  const orderItems=[];
-  items.forEach(([key,qty])=>{
-    const isGiftKey=key.startsWith('贈品_');
-    const isBizKey=key.startsWith('創業_');
-    const isEventKey=key.startsWith('活動_');
-    if(isEventKey){
-      const eid=parseInt(key.slice(3));
-      const ev=events.find(e=>e.id===eid);if(!ev)return;
-      const ecost=ev.items.reduce((s,i)=>{if(i.gift)return s;const p=ALL.find(x=>x.name===i.name);return s+(p?p.costs[lv]||0:0)*i.qty;},0);
-      tR+=ev.price*qty;tP+=(ev.price-ecost)*qty;return;
+      // key 格式：活動_id::name::price 或 活動_id（舊格式）
+      const parts=key.split('::');
+      const eid=parts[0].slice(3);
+      const ev=events.find(e=>String(e.id)===eid);
+      const evPrice=ev?parseFloat(ev.price)||0:(parts[2]?parseFloat(parts[2])||0:0);
+      const ecost=ev?ev.items.reduce((s,i)=>{if(i.gift)return s;const p=ALL.find(x=>x.name===i.name);return s+(p?p.costs[lv]||0:0)*i.qty;},0):0;
+      tR+=evPrice*qty;tP+=(evPrice-ecost)*qty;return;
     }
     const name=isGiftKey?key.slice(3):(isBizKey?key.slice(3):key);
     const displayName=isGiftKey?'[贈品] '+name:(isBizKey?'[創業] '+name:name);
@@ -867,7 +883,7 @@ function switchTab(t){
     pg.style.display=id===t?'flex':'none';
     document.getElementById('nav-'+id).classList.toggle('active',id===t);
   });
-  if(t==='stats')renderStats();
+  if(t==='stats'){renderStats();renderStockSummary();}
 }
 
 function setPeriod(p){
@@ -958,6 +974,7 @@ function switchStatsTab(tab){
   document.getElementById('stats-overview').style.display=tab==='overview'?'block':'none';
   document.getElementById('stats-products').style.display=tab==='products'?'block':'none';
   if(tab==='products')renderProductStats();
+  if(tab==='overview')renderStockSummary();
 }
 
 function setProdPeriod(p){
@@ -1044,6 +1061,7 @@ function renderStats(){
   if(!filtered.length){list.innerHTML='<div class="empty-state">此期間尚無訂單記錄</div>';renderManualList();return;}
   list.innerHTML=filtered.map(o=>{const pc=o.profit>=0?'c-green':'c-red';return`<div class="order-row"><div class="order-top"><div><div class="order-note-text">${o.note||'未備註'} <span class="order-level">· ${o.level}</span></div><div class="order-date">${o.dateStr}</div></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="receipt-hist-btn" onclick="showHistReceipt(${o.id})">單據</button><button class="del-btn" onclick="deleteOrder(${o.id})">刪除</button></div></div><div class="order-items-str">${o.items.map(i=>i.name+' ×'+i.qty).join('、')}</div><div class="order-nums"><span class="onum c-blue">營收 ${fmt(o.rev)}</span><span class="onum ${pc}">利潤 ${fmt(o.profit)}</span><span class="onum c-muted">${o.margin.toFixed(1)}%</span></div></div>`;}).join('');
   renderManualList();
+  renderStockSummary();
 }
 
 function deleteOrder(id){if(!confirm('確定刪除？'))return;orders=orders.filter(o=>o.id!==id);saveStorage();renderStats();}
@@ -1108,6 +1126,48 @@ function showHistReceipt(id){
   document.getElementById('receiptModal').classList.add('open');
 }
 
+function addStock(){
+  const date=document.getElementById('stockDate').value;
+  const amount=parseFloat(document.getElementById('stockAmount').value);
+  if(!date||isNaN(amount)||amount<=0){alert('請填入日期和進貨金額');return;}
+  const stocks=JSON.parse(localStorage.getItem('jerosse-stocks')||'[]');
+  const d=new Date(date);
+  const dateStr=d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');
+  stocks.unshift({id:Date.now(),date,dateStr,amount});
+  stocks.sort((a,b)=>b.date.localeCompare(a.date));
+  localStorage.setItem('jerosse-stocks',JSON.stringify(stocks));
+  document.getElementById('stockDate').value='';
+  document.getElementById('stockAmount').value='';
+  renderStockSummary();
+}
+
+function deleteStock(id){
+  if(!confirm('確定刪除此進貨記錄？'))return;
+  const stocks=JSON.parse(localStorage.getItem('jerosse-stocks')||'[]');
+  localStorage.setItem('jerosse-stocks',JSON.stringify(stocks.filter(s=>s.id!==id)));
+  renderStockSummary();
+}
+
+function renderStockSummary(){
+  const el=document.getElementById('stockList');
+  if(!el)return;
+  const stocks=JSON.parse(localStorage.getItem('jerosse-stocks')||'[]');
+  // 總進貨
+  const totalIn=stocks.reduce((s,x)=>s+x.amount,0);
+  // 已售成本（所有訂單的進貨成本加總）
+  const soldCost=orders.reduce((s,o)=>s+o.items.reduce((ss,i)=>ss+(i.cost||0)*i.qty,0),0);
+  const remain=Math.max(0,totalIn-soldCost);
+  document.getElementById('stockTotal').textContent='NT$'+Math.round(totalIn).toLocaleString();
+  document.getElementById('stockSold').textContent='NT$'+Math.round(soldCost).toLocaleString();
+  document.getElementById('stockRemain').textContent='NT$'+Math.round(remain).toLocaleString();
+  if(!stocks.length){el.innerHTML='<div style="font-size:12px;color:var(--mt-hint);padding:4px 2px">尚無進貨記錄</div>';return;}
+  el.innerHTML=stocks.map(s=>`<div class="stock-item">
+    <span class="stock-item-left">${s.dateStr}</span>
+    <span class="stock-item-right">-NT$${Math.round(s.amount).toLocaleString()}</span>
+    <button class="stock-del" onclick="deleteStock(${s.id})">✕</button>
+  </div>`).join('');
+}
+
 function addManual(){
   const month=document.getElementById('manualMonth').value;
   const profit=parseFloat(document.getElementById('manualProfit').value);
@@ -1149,6 +1209,7 @@ function renderManualList(){
 }
 
 function previewReceipt(){
+  events=JSON.parse(localStorage.getItem('jerosse-events')||'[]');
   const items=Object.entries(cart).filter(([,q])=>q>0);
   if(!items.length){alert('請先選擇商品');return;}
   const lv=getLevel(),pt=getSellType();
@@ -1162,10 +1223,31 @@ function previewReceipt(){
     const isBizKey=key.startsWith('創業_');
     const isEventKey=key.startsWith('活動_');
     if(isEventKey){
-      const eid=parseInt(key.slice(3));
-      const ev=events.find(e=>e.id===eid);if(!ev)return;
-      const ecost=ev.items.reduce((s,i)=>{if(i.gift)return s;const p=ALL.find(x=>x.name===i.name);return s+(p?p.costs[lv]||0:0)*i.qty;},0);
-      tR+=ev.price*qty;tP+=(ev.price-ecost)*qty;return;
+      // 支援新格式 活動_id::name::price 和舊格式 活動_id
+      const parts=key.split('::');
+      const eid=parts[0].slice(3);
+      // 先從 events 找
+      const ev=events.find(e=>String(e.id)===String(eid));
+      // 決定名稱和價格
+      const evName=ev?ev.name:(parts.length>=2?parts[1]:'活動組合');
+      const evPrice=ev?(parseFloat(ev.price)||0):(parts.length>=3?parseFloat(parts[2])||0:0);
+      // 如果真的找不到任何資訊就跳過
+      if(!evName&&!evPrice)return '';
+      const ecost=ev?ev.items.reduce((s,i)=>{if(i.gift)return s;const p=ALL.find(x=>x.name===i.name);return s+(p?p.costs[lv]||0:0)*i.qty;},0):0;
+      const lineTotal=evPrice*qty;
+      total+=lineTotal;
+      totalQty+=qty;
+      const evItemsStr=ev?ev.items.map(i=>(i.gift?'🎁 ':'')+i.name+(i.qty>1?' ×'+i.qty:'')).join('、'):'';
+      return`<div class="receipt-item" style="flex-direction:column;align-items:flex-start;gap:2px">
+        <div style="display:grid;grid-template-columns:minmax(0,2fr) 60px 60px 36px 70px;gap:4px;width:100%;align-items:center">
+          <div class="receipt-item-name">[活動] ${evName}</div>
+          <div class="receipt-item-origin">—</div>
+          <div class="receipt-item-unit" style="color:var(--mt-accent)">${fmt(evPrice)}</div>
+          <div class="receipt-item-qty">×${qty}</div>
+          <div class="receipt-item-price">${fmt(lineTotal)}</div>
+        </div>
+        ${evItemsStr?`<div style="font-size:11px;color:var(--mt-hint);padding-left:2px;line-height:1.5">${evItemsStr}</div>`:''}
+      </div>`;
     }
     const name=isGiftKey?key.slice(3):(isBizKey?key.slice(3):key);
     const displayName=isGiftKey?'[贈品] '+name:name;
@@ -1402,6 +1484,10 @@ function doExport(){
 
 renderTabs();
 renderGrid();
+// 設定進貨日期預設今天
+const today=new Date().toISOString().slice(0,10);
+const stockDateEl=document.getElementById('stockDate');
+if(stockDateEl)stockDateEl.value=today;
 </script>
 </body>
 </html>

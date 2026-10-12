@@ -283,7 +283,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;backg
         <option value="三級零售">三級零售</option>
         <option value="實習">實習</option>
       </select>
-      <select class="sell-type-select" id="sellType" onchange="renderGrid()">
+      <select class="sell-type-select" id="sellType" onchange="renderGrid();renderEventList()">
         <option value="r0">售：零售價</option>
         <option value="r1">售：任兩盒</option>
         <option value="r2">售：VIP價</option>
@@ -676,18 +676,15 @@ function closeEventModal(){
   editingEventId=null;
 }
 
-function calcEventPrice(items){
-  // 活動售價固定 = 非贈品商品的 VIP 價（retail[2]）× 數量加總
+function calcEventPrice(items,pt){
+  // 活動售價依右邊選單（pt）計算，贈品不計入
+  if(!pt)pt=getSellType();
   let total=0;
   items.forEach(item=>{
     if(item.gift)return;
     const prod=ALL.find(p=>p.name===item.name);
     if(!prod)return;
-    let vip=0;
-    if(prod.retail&&prod.retail[2]!=null) vip=prod.retail[2];
-    else if(prod.retail&&prod.retail[0]!=null) vip=prod.retail[0];
-    else if(prod.fixed!=null) vip=prod.fixed;
-    total+=vip*item.qty;
+    total+=getSellPrice(prod,pt)*item.qty;
   });
   return total;
 }
